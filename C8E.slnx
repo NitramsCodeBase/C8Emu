@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="C8E/C8E.csproj" />
+  <Project Path="C8E.Checks/C8E.Checks.csproj" />
+</Solution>

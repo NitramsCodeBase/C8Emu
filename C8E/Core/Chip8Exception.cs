@@ -1,3 +1,3 @@
-namespace C8Emu.Core;
+namespace C8E.Core;
 
 public sealed class Chip8Exception(string message) : Exception(message);

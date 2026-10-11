@@ -1,5 +1,5 @@
-using C8Emu.Core;
-using C8Emu.Graphics;
+using C8E.Core;
+using C8E.Graphics;
 using OpenTK.Graphics.OpenGL4;
 
 int checks = 0;

@@ -1,7 +1,7 @@
-using C8Emu.Core;
+using C8E.Core;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 
-namespace C8Emu.Input;
+namespace C8E.Input;
 
 public static class Chip8Keyboard
 {

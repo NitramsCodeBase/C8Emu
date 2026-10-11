@@ -1,4 +1,4 @@
-namespace C8Emu.Core;
+namespace C8E.Core;
 
 public interface IChip8
 {

@@ -1,7 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <AssemblyName>C8E.Checks</AssemblyName>
+    <RootNamespace>C8E.Checks</RootNamespace>
     <OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable>
   </PropertyGroup>
-  <ItemGroup><ProjectReference Include="../C8Emu/C8Emu.csproj" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="../C8E/C8E.csproj" /></ItemGroup>
 </Project>

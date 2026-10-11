@@ -1,4 +1,4 @@
-# C8Emu
+# C8E
 
 Ausführbarer klassischer CHIP-8-Emulator in C#/.NET 10 mit OpenTK 4.9.4.
 Voraussetzungen: .NET-10-SDK und ein Grafiktreiber mit OpenGL 3.3.
@@ -8,15 +8,18 @@ zeigt einen aktiven Sound-Timer.
 
 ## Start
 
+In Visual Studio die Solution `C8E.slnx` öffnen. Der äußere Repository-Ordner bleibt `C8Emu`.
+
 Im Repository-Verzeichnis:
 
 ```powershell
-dotnet build C8Emu.slnx
-dotnet run --project C8Emu -- ROMs/key-demo.ch8
-dotnet run --project C8Emu -- "C:\Pfad\Spiel.ch8" 700
+dotnet build C8E.slnx
+dotnet run --project C8E -- ROMs/key-demo.ch8
+dotnet run --project C8E -- ROMs/person.ch8
+dotnet run --project C8E -- "C:\Pfad\Spiel.ch8" 700
 ```
 
-Alternativ die gebaute `C8Emu.exe` mit ROM-Pfad starten.
+Alternativ die gebaute `C8E.exe` mit ROM-Pfad starten.
 Ohne ROM erscheint die Startanleitung; `--help` zeigt ebenfalls Hilfe.
 ROMs werden ab Adresse 0x200 geladen und dürfen 2 bis 3584 Bytes enthalten.
 Die Demo stammt aus diesem Projekt: Sie zeigt zunächst C, anschließend den
@@ -80,8 +83,8 @@ abweichende Ergebnisse zeigen.
 Die Prüfungen benötigen kein zusätzliches Testframework:
 
 ```powershell
-dotnet run --project C8Emu.Checks
-dotnet run --project C8Emu.Checks -- --window
+dotnet run --project C8E.Checks
+dotnet run --project C8E.Checks -- --window
 ```
 
 40 Core-Prüfungen testen u. a. Arithmetik/Flags, Sprünge, CALL/RET,

@@ -1,5 +1,5 @@
-using C8Emu.Core;
-using C8Emu.Input;
+using C8E.Core;
+using C8E.Input;
 using OpenTK.Audio.OpenAL;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
@@ -7,7 +7,7 @@ using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 
-namespace C8Emu.Graphics;
+namespace C8E.Graphics;
 
 public sealed class Chip8Window : GameWindow
 {
@@ -20,7 +20,7 @@ public sealed class Chip8Window : GameWindow
     public Chip8Window(IChip8 chip, byte[] rom, string romName, int instructionsPerSecond = 700)
         : base(new GameWindowSettings { UpdateFrequency = 120 }, new NativeWindowSettings
         {
-            ClientSize = new Vector2i(1024, 512), Title = $"C8Emu – {romName}",
+            ClientSize = new Vector2i(1024, 512), Title = $"C8E – {romName}",
             API = ContextAPI.OpenGL, APIVersion = new Version(3, 3), Profile = ContextProfile.Core
         })
     {
@@ -46,7 +46,7 @@ public sealed class Chip8Window : GameWindow
             { chip.TickTimers(); timerTime -= 1.0 / 60; }
             else { chip.Step(); cpuTime -= instructionPeriod; }
         }
-        Title = $"C8Emu – {romName}{(chip.SoundTimer > 0 ? " – ♪" : "")}";
+        Title = $"C8E – {romName}{(chip.SoundTimer > 0 ? " – ♪" : "")}";
         buzzer.SetPlaying(chip.SoundTimer > 0);
     }
     protected override void OnRenderFrame(FrameEventArgs args)
