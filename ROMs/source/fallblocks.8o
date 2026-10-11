@@ -1,0 +1,437 @@
+# FALLBLOCKS - original classic CHIP-8 / Octo game
+# A/D: move, W: rotate clockwise, S: soft drop, R: restart.
+# Field: 10 columns x 14 rows. Each cell is 2 x 2 pixels.
+# Lines are shown in decimal (0..255, then wrap).
+# Recommended: Octo 50 cycles/frame; C8E 3000 instructions/s.
+# No wall kicks, lock delay, hard drop, or SCHIP/XO instructions.
+# v8/v9: position; va: piece table offset; vb: rotation;
+# vc: lines; vd: new input edges; ve: game-over flag.
+
+:macro mask reg value {
+  v3 := value
+  reg &= v3
+}
+
+: main
+  # Release restart before initializing, avoiding repeated resets.
+  loop
+    v0 := 13
+    while v0 key
+  again
+  v0 := 0
+  v6 := 0
+  loop
+    i := board
+    i += v6
+    save v0
+    v6 += 1
+    if v6 != 140 then
+  again
+  i := last-input
+  save v0
+  vc := 0
+  ve := 0
+  draw-board
+  spawn
+: play
+  if ve != 0 then jump game-over
+  v0 := 13
+  if v0 key then jump main
+  read-input
+  v0 := vd
+  mask v0 1
+  if v0 != 0 then move-left
+  v0 := vd
+  mask v0 2
+  if v0 != 0 then move-right
+  v0 := vd
+  mask v0 4
+  if v0 != 0 then rotate
+  v0 := 8
+  if v0 key then fall
+  v0 := delay
+  if v0 == 0 then fall
+  jump play
+
+: game-over
+  v0 := 46
+  v1 := 20
+  i := end-mark
+  sprite v0 v1 5
+  loop
+    v0 := key
+    while v0 != 13
+  again
+  jump main
+
+: read-input
+  v5 := 0
+  v0 := 7
+  if v0 key then v5 += 1
+  v0 := 9
+  if v0 key then v5 += 2
+  v0 := 5
+  if v0 key then v5 += 4
+  i := last-input
+  load v0
+  v4 := 255
+  v4 ^= v0
+  v4 &= v5
+  vd := v4
+  v0 := v5
+  i := last-input
+  save v0
+  return
+
+: spawn
+  loop
+    va := random 7
+    while va == 7
+  again
+  va <<= va
+  va <<= va
+  va <<= va
+  va <<= va
+  vb := 0
+  v8 := 3
+  v9 := 0
+  collision
+  if v7 != 0 begin
+    ve := 1
+    return
+  end
+  draw-piece
+  v0 := 30
+  delay := v0
+  return
+
+: move-left
+  draw-piece
+  v8 += -1
+  collision
+  if v7 != 0 then v8 += 1
+  draw-piece
+  return
+
+: move-right
+  draw-piece
+  v8 += 1
+  collision
+  if v7 != 0 then v8 += -1
+  draw-piece
+  return
+
+: rotate
+  draw-piece
+  vb += 4
+  mask vb 15
+  collision
+  if v7 != 0 begin
+    vb += 12
+    mask vb 15
+  end
+  draw-piece
+  return
+
+: fall
+  draw-piece
+  v9 += 1
+  collision
+  if v7 == 0 begin
+    draw-piece
+    v0 := 30
+    delay := v0
+    return
+  end
+  v9 += -1
+  draw-piece
+  lock-piece
+  clear-lines
+  i := redraw-flag
+  load v0
+  if v0 != 0 then draw-board
+  spawn
+  return
+
+# Return the current cell coordinates in v0 (row), v1 (column).
+: cell-position
+  i := shapes
+  i += va
+  i += vb
+  i += v6
+  load v0
+  v1 := v0
+  v1 >>= v1
+  v1 >>= v1
+  v1 >>= v1
+  v1 >>= v1
+  mask v0 15
+  v0 += v9
+  v1 += v8
+  return
+
+# Return row * 10 + column in v2; v0/v1 remain unchanged.
+: board-offset
+  v2 := v0
+  v2 <<= v2
+  v3 := v2
+  v2 <<= v2
+  v2 <<= v2
+  v2 += v3
+  v2 += v1
+  return
+
+: collision
+  v6 := 0
+  v7 := 0
+  loop
+    cell-position
+    if v1 >= 10 then jump blocked
+    if v0 >= 14 then jump blocked
+    board-offset
+    i := board
+    i += v2
+    load v0
+    if v0 != 0 then jump blocked
+    v6 += 1
+    if v6 != 4 then
+  again
+  return
+: blocked
+  v7 := 1
+  return
+
+: draw-cell
+  v0 <<= v0
+  v0 += 1
+  v1 <<= v1
+  v1 += 22
+  i := block
+  sprite v1 v0 2
+  return
+
+: draw-piece
+  v6 := 0
+  loop
+    cell-position
+    draw-cell
+    v6 += 1
+    if v6 != 4 then
+  again
+  return
+
+: lock-piece
+  v6 := 0
+  loop
+    cell-position
+    board-offset
+    v0 := 1
+    i := board
+    i += v2
+    save v0
+    v6 += 1
+    if v6 != 4 then
+  again
+  return
+
+# Scan bottom-up; recheck a row after shifting rows above it.
+: clear-lines
+  v0 := 0
+  i := redraw-flag
+  save v0
+  v5 := 13
+: scan-row
+  v0 := v5
+  v1 := 0
+  board-offset
+  v6 := v2
+  v4 := 0
+  v7 := 0
+  loop
+    i := board
+    i += v6
+    load v0
+    if v0 != 0 then v7 += 1
+    v6 += 1
+    v4 += 1
+    if v4 != 10 then
+  again
+  if v7 == 10 begin
+    collapse-row
+    vc += 1
+    v0 := 1
+    i := redraw-flag
+    save v0
+    jump scan-row
+  end
+  v5 += -1
+  if v5 != 255 then jump scan-row
+  return
+
+: collapse-row
+  v0 := v5
+  v1 := 9
+  board-offset
+  v6 := v2
+  loop
+    while v6 >= 10
+    v2 := v6
+    v2 += -10
+    i := board
+    i += v2
+    load v0
+    i := board
+    i += v6
+    save v0
+    v6 += -1
+  again
+  v0 := 0
+  v6 := 0
+  loop
+    i := board
+    i += v6
+    save v0
+    v6 += 1
+    if v6 != 10 then
+  again
+  return
+
+: draw-board
+  clear
+  draw-border
+  draw-score
+  v5 := 0
+  v4 := 0
+  v6 := 0
+  loop
+    i := board
+    i += v6
+    load v0
+    if v0 != 0 begin
+      v0 := v5
+      v1 := v4
+      draw-cell
+    end
+    v6 += 1
+    v4 += 1
+    if v4 == 10 begin
+      v4 := 0
+      v5 += 1
+    end
+    if v6 != 140 then
+  again
+  return
+
+: draw-border
+  v0 := 21
+  v1 := 0
+  i := horizontal
+  sprite v0 v1 1
+  v0 := 29
+  sprite v0 v1 1
+  v0 := 37
+  i := horizontal-end
+  sprite v0 v1 1
+  v1 := 29
+  sprite v0 v1 1
+  v0 := 29
+  i := horizontal
+  sprite v0 v1 1
+  v0 := 21
+  sprite v0 v1 1
+  v1 := 1
+  loop
+    i := vertical
+    v0 := 21
+    sprite v0 v1 7
+    v0 := 42
+    sprite v0 v1 7
+    v1 += 7
+    if v1 != 29 then
+  again
+  return
+
+: draw-score
+  v0 := 46
+  v1 := 0
+  i := letter-l
+  sprite v0 v1 5
+  i := digits
+  bcd vc
+  i := digits
+  load v2
+  v3 := v0
+  v4 := v1
+  v5 := v2
+  v0 := 44
+  v1 := 8
+  i := hex v3
+  sprite v0 v1 5
+  v0 += 5
+  i := hex v4
+  sprite v0 v1 5
+  v0 += 5
+  i := hex v5
+  sprite v0 v1 5
+  return
+
+: block 0xC0 0xC0
+: horizontal 0xFF
+: horizontal-end 0xFC
+: vertical 0x80 0x80 0x80 0x80 0x80 0x80 0x80
+: letter-l 0x80 0x80 0x80 0x80 0xF0
+: end-mark 0xEE 0x88 0xAA 0xAA 0xEE
+: digits 0 0 0
+: last-input 0
+: redraw-flag 0
+: shapes
+  # I
+  0x01 0x11 0x21 0x31
+  0x20 0x21 0x22 0x23
+  0x32 0x22 0x12 0x02
+  0x13 0x12 0x11 0x10
+  # O
+  0x10 0x20 0x11 0x21
+  0x10 0x20 0x11 0x21
+  0x10 0x20 0x11 0x21
+  0x10 0x20 0x11 0x21
+  # T
+  0x10 0x01 0x11 0x21
+  0x21 0x10 0x11 0x12
+  0x12 0x21 0x11 0x01
+  0x01 0x12 0x11 0x10
+  # S
+  0x10 0x20 0x01 0x11
+  0x21 0x22 0x10 0x11
+  0x12 0x02 0x21 0x11
+  0x01 0x00 0x12 0x11
+  # Z
+  0x00 0x10 0x11 0x21
+  0x20 0x21 0x11 0x12
+  0x22 0x12 0x11 0x01
+  0x02 0x01 0x11 0x10
+  # J
+  0x00 0x01 0x11 0x21
+  0x20 0x10 0x11 0x12
+  0x22 0x21 0x11 0x01
+  0x02 0x12 0x11 0x10
+  # L
+  0x20 0x01 0x11 0x21
+  0x22 0x10 0x11 0x12
+  0x02 0x21 0x11 0x01
+  0x00 0x12 0x11 0x10
+: board
+  0 0 0 0 0 0 0 0 0 0
+  0 0 0 0 0 0 0 0 0 0
+  0 0 0 0 0 0 0 0 0 0
+  0 0 0 0 0 0 0 0 0 0
+  0 0 0 0 0 0 0 0 0 0
+  0 0 0 0 0 0 0 0 0 0
+  0 0 0 0 0 0 0 0 0 0
+  0 0 0 0 0 0 0 0 0 0
+  0 0 0 0 0 0 0 0 0 0
+  0 0 0 0 0 0 0 0 0 0
+  0 0 0 0 0 0 0 0 0 0
+  0 0 0 0 0 0 0 0 0 0
+  0 0 0 0 0 0 0 0 0 0
+  0 0 0 0 0 0 0 0 0 0
