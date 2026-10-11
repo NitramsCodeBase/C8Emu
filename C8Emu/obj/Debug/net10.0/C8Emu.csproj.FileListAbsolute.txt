@@ -1,0 +1,15 @@
+C:\Users\MStei\source\repos\Emulation\C8Emu\C8Emu\bin\Debug\net10.0\C8Emu.exe
+C:\Users\MStei\source\repos\Emulation\C8Emu\C8Emu\bin\Debug\net10.0\C8Emu.deps.json
+C:\Users\MStei\source\repos\Emulation\C8Emu\C8Emu\bin\Debug\net10.0\C8Emu.runtimeconfig.json
+C:\Users\MStei\source\repos\Emulation\C8Emu\C8Emu\bin\Debug\net10.0\C8Emu.dll
+C:\Users\MStei\source\repos\Emulation\C8Emu\C8Emu\bin\Debug\net10.0\C8Emu.pdb
+C:\Users\MStei\source\repos\Emulation\C8Emu\C8Emu\obj\Debug\net10.0\C8Emu.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\MStei\source\repos\Emulation\C8Emu\C8Emu\obj\Debug\net10.0\C8Emu.AssemblyInfoInputs.cache
+C:\Users\MStei\source\repos\Emulation\C8Emu\C8Emu\obj\Debug\net10.0\C8Emu.AssemblyInfo.cs
+C:\Users\MStei\source\repos\Emulation\C8Emu\C8Emu\obj\Debug\net10.0\C8Emu.csproj.CoreCompileInputs.cache
+C:\Users\MStei\source\repos\Emulation\C8Emu\C8Emu\obj\Debug\net10.0\C8Emu.dll
+C:\Users\MStei\source\repos\Emulation\C8Emu\C8Emu\obj\Debug\net10.0\refint\C8Emu.dll
+C:\Users\MStei\source\repos\Emulation\C8Emu\C8Emu\obj\Debug\net10.0\C8Emu.pdb
+C:\Users\MStei\source\repos\Emulation\C8Emu\C8Emu\obj\Debug\net10.0\C8Emu.genruntimeconfig.cache
+C:\Users\MStei\source\repos\Emulation\C8Emu\C8Emu\obj\Debug\net10.0\ref\C8Emu.dll
+C:\Users\MStei\source\repos\Emulation\C8Emu\C8Emu\obj\Debug\net10.0\C8Emu.csproj.Up2Date
