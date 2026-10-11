@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("C8Emu")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9d1cd1a76fa7bcca79c73e9652636c1d48645104")]
 [assembly: System.Reflection.AssemblyProductAttribute("C8Emu")]
 [assembly: System.Reflection.AssemblyTitleAttribute("C8Emu")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
