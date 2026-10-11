@@ -15,7 +15,7 @@ if (args.Length == 0 || args[0] is "--help" or "-h")
         F5                      : Restart
         Keys                    : 1234 / QWER / ASDF / YXCV (also ZXCV)
 
-        version beta 1.0
+        version beta 1.01
         """);
 
     return args.Length == 0 ? 1 : 0;
@@ -30,7 +30,7 @@ int Run ()
     {
         int speed = 700;
         if (args.Length > 2 || (args.Length == 2 && (!int.TryParse(args[1], out speed) || speed is < 1 or > 100000)))
-            throw new ArgumentException("Geschwindigkeit muss zwischen 1 und 100000 Instruktionen/s liegen.");
+            throw new ArgumentException("Speed must be between 1 and 100000 instructions/s.");
         var rom = File.ReadAllBytes(args[0]);
         var chip = new Chip8();
         chip.LoadRom(rom);

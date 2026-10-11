@@ -78,6 +78,24 @@ Die klassischen Opcodes sind implementiert. Bei Varianten gelten:
 Damit ist das Verhalten definiert; ROMs für andere CHIP-8-Varianten können
 abweichende Ergebnisse zeigen.
 
+## Darstellung
+
+Die Farben entsprechen dem Octo-Screenshot: Bildschirmfläche #996600,
+aktive Pixel #FFCC00, Außenrand #000000. Ein kleiner Randabstand,
+quadratische Pixel und das Seitenverhältnis 2:1 bleiben beim Resize erhalten.
+
+XOR-Sprites werden oft zunächst gelöscht und nach mehreren Instruktionen
+neu gezeichnet. Bei 700 Instruktionen/s kann diese Lücke etwa 19 ms dauern;
+ein direktes Abbild des CPU-Puffers zeigt dann einzelne leere Bilder.
+`Graphics/Chip8Display.cs` hält zuletzt aktive Pixel für 33 ms sichtbar.
+Das gilt für alle ROMs und ist ausschließlich eine Darstellungsentscheidung:
+CPU-Puffer, XOR-Kollisionen, Geschwindigkeit, Tasten und 60-Hz-Timer bleiben
+unverändert. Neue Pixel erscheinen sofort; ausgeschaltete Pixel können
+kurz nachleuchten. F5 setzt auch den Darstellungspuffer zurück.
+Bewusstes dauerhaftes Löschen wird dadurch bis zu 33 ms verzögert;
+bei sehr niedriger CPU-Geschwindigkeit können längere Löschlücken weiterhin
+sichtbar sein. Dies ist keine historische VIP-VBlank-Emulation.
+
 ## Prüfungen
 
 Die Prüfungen benötigen kein zusätzliches Testframework:
@@ -89,9 +107,9 @@ dotnet run --project C8E.Checks -- --window
 
 40 Core-Prüfungen testen u. a. Arithmetik/Flags, Sprünge, CALL/RET,
 klassische Quirks, BCD, Registerspeicher, Spritekollision und Randverhalten,
-Tastaturwartebefehle, Timer, Neustart sowie Fehlerfälle.
+Tastaturwartebefehle, Timer, Neustart sowie Fehlerfälle. Sechs weitere Prüfungen testen die Nachleuchtdauer, sofortige neue Pixel, Neustart und einen fünfsekündigen XOR-Lösch-/Neuzeichen-Ablauf.
 `--window` öffnet zusätzlich ein unsichtbares echtes OpenTK-Fenster und liest
-einen gerenderten Pixel zurück; dafür ist ein verfügbarer Grafikdesktop nötig.
+Sprite-, Hintergrund- und Randfarben vor und nach einem Resize zurück; dafür ist ein verfügbarer Grafikdesktop nötig.
 Build und beide Prüfmodi wurden erfolgreich ausgeführt. Hörbarer Ton konnte
 hier mangels nativer OpenAL-Bibliothek nicht geprüft werden.
 

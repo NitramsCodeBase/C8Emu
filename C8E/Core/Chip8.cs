@@ -40,7 +40,7 @@ public sealed class Chip8 : IChip8
     public void LoadRom(ReadOnlySpan<byte> rom)
     {
         if (rom.Length is < 2 or > MemorySize - RomStart)
-            throw new Chip8Exception($"ROM muss 2 bis {MemorySize - RomStart} Bytes enthalten.");
+            throw new Chip8Exception($"Error: The ROM size must be between 2 and {MemorySize - RomStart} bytes.");
         Reset(); rom.CopyTo(memory.AsSpan(RomStart));
     }
     public void SetKey(int key, bool pressed)
@@ -66,7 +66,7 @@ public sealed class Chip8 : IChip8
     private void CheckMemory(int address, int length)
     {
         if (address < 0 || address > MemorySize - length)
-            throw new Chip8Exception($"Speicherzugriff außerhalb von 4 KB: 0x{address:X3}, Länge {length}.");
+            throw new Chip8Exception($"Memory access outside 4 KB: 0x{address:X3}, length {length}.");
     }
     public void Step()
     {
@@ -78,14 +78,14 @@ public sealed class Chip8 : IChip8
         int x = (opcode >> 8) & 15, y = (opcode >> 4) & 15, n = opcode & 15, nn = opcode & 255;
         ushort nnn = (ushort)(opcode & 0xFFF);
         byte vx = registers[x], vy = registers[y];
-        void Invalid() => throw new Chip8Exception($"Unbekannter Opcode 0x{opcode:X4} bei 0x{address:X3}.");
+        void Invalid() => throw new Chip8Exception($"Unknown opcode 0x{opcode:X4} at 0x{address:X3}.");
         switch (opcode >> 12)
         {
             case 0:
                 if (opcode == 0x00E0) Array.Clear(display);
                 else if (opcode == 0x00EE)
                 {
-                    if (stackPointer == 0) throw new Chip8Exception("Stack-Unterlauf bei RET.");
+                    if (stackPointer == 0) throw new Chip8Exception("Stack underflow on RET.");
                     ProgramCounter = stack[--stackPointer];
                 }
                 else if (opcode is 0x00FB or 0x00FC or 0x00FD or 0x00FE or 0x00FF || (opcode & 0xFFF0) == 0x00C0) Invalid();
@@ -93,7 +93,7 @@ public sealed class Chip8 : IChip8
                 break;
             case 1: ProgramCounter = nnn; break;
             case 2:
-                if (stackPointer == stack.Length) throw new Chip8Exception("Stack-Überlauf bei CALL.");
+                if (stackPointer == stack.Length) throw new Chip8Exception("Stack overflow on CALL.");
                 stack[stackPointer++] = ProgramCounter; ProgramCounter = nnn; break;
             case 3: if (vx == nn) ProgramCounter += 2; break;
             case 4: if (vx != nn) ProgramCounter += 2; break;

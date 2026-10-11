@@ -15,7 +15,8 @@ public sealed class Chip8Window : GameWindow
     private readonly byte[] rom;
     private readonly int instructionsPerSecond;
     private readonly string romName;
-    private double cpuTime, timerTime;
+    private double cpuTime, timerTime, displayTime;
+    private readonly Chip8Display display = new();
     private readonly Buzzer buzzer = new();
     public Chip8Window(IChip8 chip, byte[] rom, string romName, int instructionsPerSecond = 700)
         : base(new GameWindowSettings { UpdateFrequency = 120 }, new NativeWindowSettings
@@ -33,18 +34,22 @@ public sealed class Chip8Window : GameWindow
     {
         base.OnUpdateFrame(args);
         if (KeyboardState.IsKeyDown(Keys.Escape)) { Close(); return; }
-        if (KeyboardState.IsKeyPressed(Keys.F5)) { chip.LoadRom(rom); cpuTime = timerTime = 0; }
+        if (KeyboardState.IsKeyPressed(Keys.F5)) { chip.LoadRom(rom); display.Reset(); cpuTime = timerTime = displayTime = 0; }
         Chip8Keyboard.Update(chip, KeyboardState, IsFocused);
         // Bound catch-up after dragging the window or hitting a breakpoint.
         double elapsed = Math.Min(args.Time, 0.1);
-        cpuTime += elapsed; timerTime += elapsed;
+        cpuTime += elapsed; timerTime += elapsed; displayTime += elapsed;
         double instructionPeriod = 1.0 / instructionsPerSecond;
         // Interleave timers and instructions so timer writes occur in time order.
         while (cpuTime >= instructionPeriod || timerTime >= 1.0 / 60)
         {
             if (timerTime >= 1.0 / 60 && (cpuTime < instructionPeriod || timerTime - 1.0 / 60 >= cpuTime - instructionPeriod))
             { chip.TickTimers(); timerTime -= 1.0 / 60; }
-            else { chip.Step(); cpuTime -= instructionPeriod; }
+            else
+            {
+                chip.Step(); cpuTime -= instructionPeriod;
+                display.Observe(chip.Display.Span, displayTime - cpuTime);
+            }
         }
         Title = $"C8E – {romName}{(chip.SoundTimer > 0 ? " – ♪" : "")}";
         buzzer.SetPlaying(chip.SoundTimer > 0);
@@ -53,17 +58,22 @@ public sealed class Chip8Window : GameWindow
     {
         base.OnRenderFrame(args);
         GL.Disable(EnableCap.ScissorTest);
-        GL.ClearColor(0.025f, 0.035f, 0.05f, 1);
+        GL.ClearColor(0f, 0f, 0f, 1);
         GL.Clear(ClearBufferMask.ColorBufferBit);
         int width = FramebufferSize.X, height = FramebufferSize.Y;
         if (width > 0 && height > 0)
         {
-            double scale = Math.Min(width / 64.0, height / 32.0);
+            // Keep a small black border around the Octo-colored display.
+            int padding = Math.Min(16, Math.Max(0, (Math.Min(width, height) - 1) / 2));
+            double scale = Math.Min((width - 2 * padding) / 64.0, (height - 2 * padding) / 32.0);
             if (scale >= 1) scale = Math.Floor(scale);
             int left = (width - (int)(64 * scale)) / 2, bottom = (height - (int)(32 * scale)) / 2;
             GL.Enable(EnableCap.ScissorTest);
-            GL.ClearColor(0.6f, 1f, 0.7f, 1);
-            var pixels = chip.Display.Span;
+            GL.Scissor(left, bottom, (int)(64 * scale), (int)(32 * scale));
+            GL.ClearColor(0x99 / 255f, 0x66 / 255f, 0f, 1);
+            GL.Clear(ClearBufferMask.ColorBufferBit);
+            GL.ClearColor(1f, 0xCC / 255f, 0f, 1);
+            var pixels = display.Snapshot(displayTime).Span;
             for (int y = 0; y < 32; y++)
                 for (int x = 0; x < 64; x++)
                     if (pixels[y * 64 + x])
@@ -93,10 +103,10 @@ public sealed class Chip8Window : GameWindow
             try
             {
                 device = ALC.OpenDevice(null);
-                if (device == ALDevice.Null) throw new InvalidOperationException("Kein Audiogerät verfügbar.");
+                if (device == ALDevice.Null) throw new InvalidOperationException("No audio device available.");
                 context = ALC.CreateContext(device, new ALContextAttributes());
                 if (context == ALContext.Null || !ALC.MakeContextCurrent(context))
-                    throw new InvalidOperationException("Audiokontext konnte nicht erstellt werden.");
+                    throw new InvalidOperationException("Could not create audio context.");
                 buffer = AL.GenBuffer(); source = AL.GenSource();
                 // 100 ms contains exactly 44 periods of a 440 Hz tone.
                 var samples = new short[4410];
@@ -104,11 +114,11 @@ public sealed class Chip8Window : GameWindow
                 AL.BufferData(buffer, ALFormat.Mono16, samples, 44100);
                 AL.Source(source, ALSourcei.Buffer, buffer);
                 AL.Source(source, ALSourceb.Looping, true);
-                if (AL.GetError() != ALError.NoError) throw new InvalidOperationException("Audiopuffer konnte nicht erstellt werden.");
+                if (AL.GetError() != ALError.NoError) throw new InvalidOperationException("Could not create audio buffer.");
             }
             catch (Exception ex) when (ex is DllNotFoundException or InvalidOperationException or TypeInitializationException)
             {
-                Console.Error.WriteLine($"Ton deaktiviert: {ex.Message} Der Sound-Timer bleibt im Fenstertitel sichtbar.");
+                Console.Error.WriteLine($"Sound disabled: {ex.Message} The sound timer remains visible in the window title.");
                 Dispose();
             }
         }
